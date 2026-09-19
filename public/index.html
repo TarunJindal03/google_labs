@@ -324,6 +324,14 @@
           <span class="tile-name">My Medicines</span>
           <span class="tile-desc">Scan prescription photo, track daily doses, and export calendar.</span>
         </button>
+
+        <button type="button" id="tile-profile" class="tile-btn" onclick="showScreen('profile')" aria-label="Go to My Profile and Emergency Contact">
+          <div style="color: var(--accent-color); margin-bottom: 10px;">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <span class="tile-name">My Profile</span>
+          <span class="tile-desc">Manage your name, emergency contacts, and WhatsApp sharing.</span>
+        </button>
       </div>
     </section>
 
@@ -685,10 +693,16 @@
         <p id="rx-doctor-name" style="font-weight: 700; color: var(--accent-color); margin-bottom: 14px;"></p>
         <div id="rx-medicines-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
 
-        <button type="button" id="rx-save-all" class="btn btn-primary" style="width: 100%; margin-top: 18px;" onclick="savePendingMedicines()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          <span>Save These Medicines to My Schedule</span>
-        </button>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
+          <button type="button" id="rx-save-all" class="btn btn-primary" style="flex: 1; min-width: 240px;" onclick="savePendingMedicines()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Save These Medicines to My Schedule</span>
+          </button>
+          <button type="button" id="rx-save-and-share" class="btn btn-secondary" style="flex: 1; min-width: 240px;" onclick="saveAndShareWhatsApp()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <span>Save &amp; Share via WhatsApp</span>
+          </button>
+        </div>
         <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 10px;">Please confirm all doses with your physician or pharmacist. AI assistance can make mistakes.</p>
       </div>
 
@@ -703,16 +717,87 @@
 
         <div id="rx-saved-list" class="medicine-list"></div>
 
-        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
-          <button type="button" id="rx-calendar" class="btn btn-secondary" onclick="downloadCalendarICS()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Download Calendar (.ics)</span>
+        <div style="margin-top: 20px; padding: 18px; background-color: var(--bg-page); border: 2px solid var(--border-color); border-radius: 14px;">
+          <label for="rx-target-contact" class="form-label" style="margin-bottom: 8px; font-size: 1.05rem;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Send Medicine Schedule To:
+          </label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;">
+            <select id="rx-target-contact" style="flex: 1; min-width: 240px; font-size: 1.05rem; padding: 12px; border-radius: 10px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-weight: 600;" onchange="onRxContactChange()">
+              <option value="rahul" id="rx-opt-emergency">Rahul (Son) - +91 98765 43210 (Primary Contact)</option>
+              <option value="priya">Priya (Daughter) - +91 98123 45678</option>
+              <option value="doctor">Dr. Mehta (Clinic) - 022 2456 7890</option>
+              <option value="custom">Enter Custom Phone Number</option>
+            </select>
+            <input type="tel" id="rx-custom-phone" placeholder="Enter mobile number with country code" style="display: none; flex: 1; min-width: 220px; margin-bottom: 0;">
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="button" id="rx-share-wa" class="btn btn-primary" onclick="shareMedicinesWhatsApp()">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              <span>Share Schedule via WhatsApp</span>
+            </button>
+
+            <button type="button" id="rx-copy-wa" class="btn btn-secondary" onclick="copyMedicinesWhatsApp()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy Message</span>
+            </button>
+
+            <button type="button" id="rx-calendar" class="btn btn-secondary" onclick="downloadCalendarICS()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>Download Calendar (.ics)</span>
+            </button>
+          </div>
+
+          <div id="rx-wa-status" style="display: none; margin-top: 14px; padding: 12px 16px; background-color: var(--badge-safe-bg); color: var(--badge-safe-text); border: 2px solid var(--badge-safe-border); border-radius: 10px; font-weight: 700;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 7: MY PROFILE & EMERGENCY CONTACTS -->
+    <section id="screen-profile" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem; display: inline-flex; align-items: center; gap: 8px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          My Profile &amp; Emergency Contacts
+        </h2>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Elder Profile Details</h3>
+        <p style="margin-bottom: 16px; color: var(--text-muted);">Personalize your Saathi companion. All data is saved strictly in your private local browser.</p>
+
+        <div style="margin-bottom: 16px;">
+          <label for="profile-name" class="form-label">Your Full Name:</label>
+          <input type="text" id="profile-name" placeholder="Example: Laxmi Jindal" value="Laxmi Jindal">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label for="profile-emergency-name" class="form-label">Primary Emergency Contact Name:</label>
+          <input type="text" id="profile-emergency-name" placeholder="Example: Rahul (Son)" value="Rahul (Son)">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="profile-emergency-phone" class="form-label">Emergency Contact Mobile Number:</label>
+          <input type="tel" id="profile-emergency-phone" placeholder="Example: +91 98765 43210" value="+91 98765 43210">
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button type="button" id="profile-save" class="btn btn-primary" onclick="saveProfileData()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Save Profile</span>
           </button>
 
-          <button type="button" id="rx-share-wa" class="btn btn-secondary" onclick="shareMedicinesWhatsApp()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-            <span>Share Schedule via WhatsApp</span>
+          <button type="button" id="profile-clear" class="btn btn-secondary" onclick="clearProfileData()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Reset Data</span>
           </button>
+        </div>
+
+        <div id="profile-save-status" style="display: none; color: #16A34A; font-weight: 700; margin-top: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg> Profile saved successfully on your device!
         </div>
       </div>
     </section>
@@ -730,10 +815,16 @@
       simplerWords: false,
       currentSpeech: null,
       pendingMedicines: [],
-      reminders: []
+      reminders: [],
+      profile: {
+        name: 'Laxmi Jindal',
+        emergencyName: 'Rahul (Son)',
+        emergencyPhone: '+91 98765 43210'
+      }
     };
 
     window.addEventListener('DOMContentLoaded', () => {
+      loadSavedProfile();
       initGreeting();
       initAccessibilityControls();
       loadSavedSettings();
@@ -744,20 +835,44 @@
       const hour = new Date().getHours();
       const titleEl = document.getElementById('greeting-text');
       const subEl = document.getElementById('greeting-sub');
+      const elderName = (state.profile && state.profile.name) ? (', ' + state.profile.name + ' Ji!') : '!';
 
       if (hour >= 5 && hour < 12) {
-        titleEl.textContent = 'Suprabhat / Good Morning!';
+        titleEl.textContent = 'Suprabhat / Good Morning' + elderName;
         subEl.textContent = 'Hope you slept peacefully. Ready to start a lovely new day?';
       } else if (hour >= 12 && hour < 17) {
-        titleEl.textContent = 'Good Afternoon!';
+        titleEl.textContent = 'Good Afternoon' + elderName;
         subEl.textContent = 'Hope you enjoyed a warm, nourishing lunch. Take some quiet rest.';
       } else if (hour >= 17 && hour < 21) {
-        titleEl.textContent = 'Shubh Sandhya / Good Evening!';
+        titleEl.textContent = 'Shubh Sandhya / Good Evening' + elderName;
         subEl.textContent = 'Time to relax, have a warm beverage, and take a light stroll.';
       } else {
-        titleEl.textContent = 'Shubh Ratri / Good Night!';
+        titleEl.textContent = 'Shubh Ratri / Good Night' + elderName;
         subEl.textContent = 'Rest well, sleep peacefully, and wake up refreshed.';
       }
+      fetchTodayCard();
+    }
+
+    async function fetchTodayCard() {
+      try {
+        const elderName = (state.profile && state.profile.name) ? state.profile.name.trim() : 'Laxmi Jindal';
+        const res = await fetch('/api/today', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: elderName })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.greeting) {
+            const titleEl = document.getElementById('greeting-text');
+            if (titleEl) titleEl.textContent = data.greeting;
+          }
+          if (data && data.tip) {
+            const tipEl = document.getElementById('tip-text');
+            if (tipEl) tipEl.textContent = data.tip;
+          }
+        }
+      } catch (e) {}
     }
 
     function initAccessibilityControls() {
@@ -1456,6 +1571,13 @@
         if (instInput) m.instructions = instInput.value.trim();
       });
 
+      // If existing reminders were only the 3 initial default placeholders, replace them with the scanned prescription
+      const isOnlyDefaults = state.reminders.length === 3 &&
+        state.reminders.every(r => r.id === 'med-1' || r.id === 'med-2' || r.id === 'med-3');
+      if (isOnlyDefaults) {
+        state.reminders = [];
+      }
+
       state.pendingMedicines.forEach(m => {
         if (m.name) {
           state.reminders.push({
@@ -1473,6 +1595,11 @@
       document.getElementById('rx-review').style.display = 'none';
       renderSavedMedicines();
       speakText('Medicines saved to your daily schedule!');
+    }
+
+    function saveAndShareWhatsApp() {
+      savePendingMedicines();
+      shareMedicinesWhatsApp();
     }
 
     function loadSamplePrescription() {
@@ -1544,20 +1671,179 @@
       URL.revokeObjectURL(link.href);
     }
 
+    function cleanPhoneNumber(phone) {
+      if (!phone) return '';
+      let digits = phone.replace(/\D/g, '');
+      if (digits.length === 11 && digits.startsWith('0')) {
+        digits = digits.slice(1);
+      }
+      if (digits.length === 10) {
+        return '91' + digits;
+      }
+      return digits;
+    }
+
+    function onRxContactChange() {
+      const sel = document.getElementById('rx-target-contact');
+      const customInput = document.getElementById('rx-custom-phone');
+      if (sel && customInput) {
+        customInput.style.display = (sel.value === 'custom') ? 'block' : 'none';
+      }
+    }
+
+    function getEmergencyRecipient() {
+      const sel = document.getElementById('rx-target-contact');
+      const customInput = document.getElementById('rx-custom-phone');
+      if (!sel) {
+        return {
+          name: (state.profile && state.profile.emergencyName) || 'Rahul (Son)',
+          phone: (state.profile && state.profile.emergencyPhone) || '+91 98765 43210'
+        };
+      }
+      const val = sel.value;
+      if (val === 'rahul') return {
+        name: (state.profile && state.profile.emergencyName) || 'Rahul (Son)',
+        phone: (state.profile && state.profile.emergencyPhone) || '+91 98765 43210'
+      };
+      if (val === 'priya') return { name: 'Priya (Daughter)', phone: '+91 98123 45678' };
+      if (val === 'doctor') return { name: 'Dr. Mehta (Clinic)', phone: '022 2456 7890' };
+      if (val === 'custom') {
+        const customPhone = customInput ? customInput.value.trim() : '';
+        return { name: 'Emergency Contact', phone: customPhone };
+      }
+      return {
+        name: (state.profile && state.profile.emergencyName) || 'Rahul (Son)',
+        phone: (state.profile && state.profile.emergencyPhone) || '+91 98765 43210'
+      };
+    }
+
+    function buildWhatsAppMessage(recipient) {
+      const elderName = (state.profile && state.profile.name) ? state.profile.name.trim() : 'Laxmi Jindal';
+      let text = `Namaste! Here is the daily medicine schedule for ${elderName} from Saathi:\n\n`;
+      state.reminders.forEach(m => {
+        const times = (m.times || []).join(', ');
+        text += `• ${m.name}${m.dose ? ' (' + m.dose + ')' : ''}${times ? ' at ' + times : ''}${m.instructions ? ' - ' + m.instructions : ''}\n`;
+      });
+      if (recipient && recipient.phone) {
+        text += `\nPrimary Emergency Contact: ${recipient.name} (${recipient.phone})\n`;
+      }
+      text += '\nPlease confirm with your doctor or chemist.\n(AI can make mistakes. Check with family for big decisions.)\nShared with love from Saathi Senior Citizen Companion.';
+      return text;
+    }
+
     function shareMedicinesWhatsApp() {
+      if ((!state.reminders || state.reminders.length === 0) && state.pendingMedicines && state.pendingMedicines.length > 0) {
+        savePendingMedicines();
+      }
+
       if (!state.reminders || state.reminders.length === 0) {
         alert('No medicines saved yet. Please add or scan a prescription first.');
         return;
       }
 
-      let text = 'Namaste! Here is my daily medicine schedule from Saathi:\n\n';
-      state.reminders.forEach(m => {
-        const times = (m.times || []).join(', ');
-        text += `• ${m.name}${m.dose ? ' (' + m.dose + ')' : ''}${times ? ' at ' + times : ''}${m.instructions ? ' - ' + m.instructions : ''}\n`;
-      });
-      text += '\nShared with love from Saathi Senior Citizen Companion.';
-      const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
+      const recipient = getEmergencyRecipient();
+      const text = buildWhatsAppMessage(recipient);
+      const cleanDigits = cleanPhoneNumber(recipient.phone);
+
+      const url = cleanDigits
+        ? `https://api.whatsapp.com/send?phone=${cleanDigits}&text=${encodeURIComponent(text)}`
+        : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+
+      const statusBox = document.getElementById('rx-wa-status');
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = `Connecting to WhatsApp for <strong>${recipient.name}</strong> (${recipient.phone || 'All chats'})...<br><span style="font-size: 0.95rem; font-weight: normal; margin-top: 4px; display: inline-block;">If WhatsApp didn't open automatically, <a href="${url}" target="_blank" rel="noopener" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">click here to open WhatsApp directly</a>.</span>`;
+      }
+
       window.open(url, '_blank');
+    }
+
+    function copyMedicinesWhatsApp() {
+      if (!state.reminders || state.reminders.length === 0) {
+        alert('No medicines saved yet. Please add or scan a prescription first.');
+        return;
+      }
+
+      const recipient = getEmergencyRecipient();
+      const text = buildWhatsAppMessage(recipient);
+      navigator.clipboard.writeText(text).then(() => {
+        const statusBox = document.getElementById('rx-wa-status');
+        if (statusBox) {
+          statusBox.style.display = 'block';
+          statusBox.textContent = 'Medicine schedule copied to clipboard! You can paste it in WhatsApp or SMS.';
+          setTimeout(() => { statusBox.style.display = 'none'; }, 4000);
+        }
+      });
+    }
+
+    // ==========================================
+    // PROFILE MANAGEMENT
+    // ==========================================
+    function loadSavedProfile() {
+      const saved = safeGetStorage('saathi_profile', null);
+      if (saved && typeof saved === 'object') {
+        state.profile = { ...state.profile, ...saved };
+      }
+      const nameInput = document.getElementById('profile-name');
+      const emNameInput = document.getElementById('profile-emergency-name');
+      const emPhoneInput = document.getElementById('profile-emergency-phone');
+      if (nameInput && state.profile.name) nameInput.value = state.profile.name;
+      if (emNameInput && state.profile.emergencyName) emNameInput.value = state.profile.emergencyName;
+      if (emPhoneInput && state.profile.emergencyPhone) emPhoneInput.value = state.profile.emergencyPhone;
+
+      const emOpt = document.getElementById('rx-opt-emergency');
+      if (emOpt && state.profile.emergencyName && state.profile.emergencyPhone) {
+        emOpt.textContent = `${state.profile.emergencyName} - ${state.profile.emergencyPhone} (Primary Contact)`;
+      }
+    }
+
+    function saveProfileData() {
+      const nameInput = document.getElementById('profile-name');
+      const emNameInput = document.getElementById('profile-emergency-name');
+      const emPhoneInput = document.getElementById('profile-emergency-phone');
+
+      state.profile = {
+        name: nameInput ? nameInput.value.trim() : 'Laxmi Jindal',
+        emergencyName: emNameInput ? emNameInput.value.trim() : 'Rahul (Son)',
+        emergencyPhone: emPhoneInput ? emPhoneInput.value.trim() : '+91 98765 43210'
+      };
+
+      safeSetStorage('saathi_profile', state.profile);
+      initGreeting();
+      fetchTodayCard();
+
+      const emOpt = document.getElementById('rx-opt-emergency');
+      if (emOpt) {
+        emOpt.textContent = `${state.profile.emergencyName} - ${state.profile.emergencyPhone} (Primary Contact)`;
+      }
+
+      const status = document.getElementById('profile-save-status');
+      if (status) {
+        status.style.display = 'block';
+        setTimeout(() => { status.style.display = 'none'; }, 3500);
+      }
+      speakText('Profile saved for ' + state.profile.name + '!');
+    }
+
+    function clearProfileData() {
+      if (confirm('Are you sure you want to reset your profile and medicine schedule?')) {
+        try {
+          localStorage.removeItem('saathi_profile');
+          localStorage.removeItem('saathi_reminders');
+        } catch (e) {
+          console.warn('Storage clear error:', e.message);
+        }
+        state.profile = {
+          name: 'Laxmi Jindal',
+          emergencyName: 'Rahul (Son)',
+          emergencyPhone: '+91 98765 43210'
+        };
+        state.reminders = [...DEFAULT_MEDICINES];
+        loadSavedProfile();
+        renderSavedMedicines();
+        initGreeting();
+        alert('Data has been reset.');
+      }
     }
 
     function speakSavedSchedule() {
@@ -1565,7 +1851,8 @@
         speakText('You have no medicines saved in your schedule yet.');
         return;
       }
-      let text = 'Here is your daily medicine schedule: ';
+      const elderName = (state.profile && state.profile.name) ? state.profile.name : 'Laxmi Jindal';
+      let text = 'Here is the daily medicine schedule for ' + elderName + ': ';
       state.reminders.forEach(m => {
         const times = (m.times || []).join(' and ');
         text += m.name + (m.dose ? ' ' + m.dose : '') + (times ? ' at ' + times : '') + '. ' + (m.instructions ? m.instructions + '. ' : '');

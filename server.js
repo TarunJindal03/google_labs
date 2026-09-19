@@ -43,8 +43,13 @@ function extractJson(raw) {
 function cleanBase64(str) {
   if (!str) return '';
   const idx = str.indexOf('base64,');
-  if (idx !== -1) return str.slice(idx + 7).trim();
-  return str.trim();
+  let raw = idx !== -1 ? str.slice(idx + 7) : str;
+  raw = raw.replace(/[\r\n\s]/g, '');
+  const remainder = raw.length % 4;
+  if (remainder > 0) {
+    raw = raw.padEnd(raw.length + (4 - remainder), '=');
+  }
+  return raw;
 }
 
 function isValidBase64(str) {
@@ -429,7 +434,10 @@ app.post('/api/prescription', async (req, res) => {
 // 5. Today Card Endpoint
 app.post('/api/today', (req, res) => {
   try {
-    const { name } = req.body || {};
+    const { name, reminders } = req.body || {};
+    if (reminders !== undefined && !Array.isArray(reminders)) {
+      return res.status(400).json({ error: 'Reminders must be an array' });
+    }
     const elderName = (name && typeof name === 'string') ? name.trim() : '';
     const greeting = elderName ? `Namaste, ${elderName} Ji! Have a blessed, peaceful day.` : 'Namaste! Have a blessed, peaceful day.';
     return res.json({

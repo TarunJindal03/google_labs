@@ -154,6 +154,35 @@ async function runVerification() {
   assert(rxValid.status === 200, 'POST /api/prescription valid input must return 200');
   assert(rxValid.data && Array.isArray(rxValid.data.medicines), 'POST /api/prescription must return medicines array');
 
+  // 4l. /api/today with Laxmi Jindal name
+  const todayRes = await request('/api/today', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Laxmi Jindal' })
+  });
+  assert(todayRes.status === 200, 'POST /api/today must return 200');
+  assert(todayRes.data && todayRes.data.greeting && todayRes.data.greeting.includes('Laxmi Jindal'), 'POST /api/today must personalize greeting for Laxmi Jindal');
+
+  // 4m. /api/prescription with PDF payload
+  const dummyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF').toString('base64');
+  const rxPdfRes = await request('/api/prescription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image: dummyPdf,
+      mimeType: 'application/pdf'
+    })
+  });
+  assert(rxPdfRes.status === 200, 'POST /api/prescription with PDF must return 200');
+  assert(rxPdfRes.data && rxPdfRes.data.readable === true, 'PDF prescription must be readable');
+  assert(Array.isArray(rxPdfRes.data.medicines) && rxPdfRes.data.medicines.length > 0, 'PDF prescription must return extracted medicines');
+
+  // 4n. WhatsApp flow check for Laxmi Jindal -> Rahul (Son)
+  assert(htmlCode.includes('id="rx-share-wa"'), 'Missing id="rx-share-wa" for WhatsApp sharing');
+  assert(htmlCode.includes('api.whatsapp.com/send'), 'Missing WhatsApp universal API URL');
+  assert(htmlCode.includes('Laxmi Jindal'), 'Missing default elder persona Laxmi Jindal');
+  assert(htmlCode.includes('Rahul (Son)'), 'Missing default emergency contact Rahul');
+
   // 5. Test Frontend Static Serving
   console.log('[5/5] Testing public/index.html serving...');
   const resHtml = await fetch(BASE_URL + '/');
