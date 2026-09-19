@@ -10,12 +10,16 @@
 - POST /api/simplify {text} -> {summary, actions: string[], deadline: string|null}
 - POST /api/scam {text} -> {verdict: "Safe"|"Suspicious"|"Danger", reasons: string[], advice: string}
 - POST /api/ask {question, simple?: boolean} -> {answer}
+- POST /api/prescription {image, mimeType} -> {readable: boolean, doctor: string|null, medicines: [{name, dose, times, instructions, days}], notes: string}
+- POST /api/today {name?: string} -> {greeting, tip, date}
+- GET /api/health -> {status: "ok"}
 - All errors return HTTP 200 with a friendly {error: "..."} message. Never crash or return a stack trace.
 - Empty input returns 400 with {error}.
 
 ## UI rules
 - Base font 20px+, high contrast, big buttons (min 56px tall).
 - Home screen has 3 big tiles: Simplify This, Scam Check, Ask Anything (+ a "Today" card).
+- Additional elder tiles: My Medicines (id="tile-rx", photo/PDF prescription OCR, medicine schedule, calendar .ics export, WhatsApp share) and My Family.
 - Every screen has a "Back to Home" button (id="back-home").
 - Accessibility bar: text size slider (id="font-slider"), high contrast toggle (id="contrast-toggle"), Simpler words toggle (id="simple-toggle").
 - Each feature shows a loading state and a friendly error state. No dead ends.

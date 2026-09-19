@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
@@ -13,12 +13,72 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+// Safe JSON extractor to handle markdown code fences
+function extractJson(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch (e) {
+    const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch && fenceMatch[1]) {
+      try {
+        return JSON.parse(fenceMatch[1].trim());
+      } catch (e2) {
+        console.warn('Could not parse fenced JSON:', e2.message);
+      }
+    }
+    const braceMatch = trimmed.match(/\{[\s\S]*\}/);
+    if (braceMatch) {
+      try {
+        return JSON.parse(braceMatch[0]);
+      } catch (e3) {
+        console.warn('Could not parse regex-matched JSON:', e3.message);
+      }
+    }
+  }
+  return null;
+}
+
+function cleanBase64(str) {
+  if (!str) return '';
+  const idx = str.indexOf('base64,');
+  if (idx !== -1) return str.slice(idx + 7).trim();
+  return str.trim();
+}
+
+function isValidBase64(str) {
+  if (typeof str !== 'string' || !str.trim()) return false;
+  const clean = cleanBase64(str);
+  if (clean.length === 0 || clean.length % 4 !== 0) return false;
+  return /^[A-Za-z0-9+/]+={0,2}$/.test(clean);
+}
+
+// Canned Fallback Data
+const MOCK_DATA = {
+  prescription: {
+    readable: true,
+    doctor: "Dr. A. K. Sharma, MD (Senior Geriatric Care)",
+    medicines: [
+      { name: "Amlodipine", dose: "5 mg", times: ["08:00"], instructions: "Take 1 tablet after breakfast with water for blood pressure", days: 30 },
+      { name: "Metformin", dose: "500 mg", times: ["08:00", "20:00"], instructions: "Take with or right after morning and evening meals", days: 30 },
+      { name: "Calcium + Vit D3", dose: "500 mg", times: ["21:00"], instructions: "Take with warm milk at night for bone strength", days: 30 }
+    ],
+    notes: "Regular blood pressure monitoring recommended every week. Keep well hydrated."
+  }
+};
+
 app.get('/', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-async function callGemini(prompt, systemInstruction = '', responseJson = false) {
+// Container Health Check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+async function callGemini(partsInput, systemInstruction = '', responseJson = false) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || process.env.MOCK === '1') {
     return null;
@@ -27,12 +87,20 @@ async function callGemini(prompt, systemInstruction = '', responseJson = false) 
   const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
 
-  const combinedText = systemInstruction ? (systemInstruction + '\n\n' + prompt) : prompt;
+  let parts = [];
+  if (Array.isArray(partsInput)) {
+    parts = [...partsInput];
+    if (systemInstruction) {
+      parts.push({ text: systemInstruction });
+    }
+  } else {
+    const combinedText = systemInstruction ? (systemInstruction + '\n\n' + partsInput) : partsInput;
+    parts = [{ text: combinedText }];
+  }
+
   const body = {
     contents: [
-      {
-        parts: [{ text: combinedText }]
-      }
+      { parts }
     ],
     generationConfig: {
       temperature: 0.2
@@ -86,13 +154,14 @@ app.post('/api/simplify', async (req, res) => {
 
         const rawJson = await callGemini(trimmed, systemPrompt, true);
         if (rawJson) {
-          const cleanJson = rawJson.replace(/^\s*```json/i, '').replace(/```\s*$/i, '').trim();
-          const parsed = JSON.parse(cleanJson);
-          return res.json({
-            summary: parsed.summary || 'Here is a simple summary of your document.',
-            actions: Array.isArray(parsed.actions) ? parsed.actions : ['Keep this document for your records.'],
-            deadline: parsed.deadline || null
-          });
+          const parsed = extractJson(rawJson);
+          if (parsed && typeof parsed === 'object') {
+            return res.json({
+              summary: parsed.summary || 'Here is a simple summary of your document.',
+              actions: Array.isArray(parsed.actions) ? parsed.actions : ['Keep this document for your records.'],
+              deadline: parsed.deadline || null
+            });
+          }
         }
       } catch (aiErr) {
         console.error('Gemini simplify error, using realistic fallback:', aiErr.message);
@@ -110,7 +179,17 @@ app.post('/api/simplify', async (req, res) => {
         ],
         deadline: '25th of this month'
       });
-    } else if (lower.includes('tax') || lower.includes('pension') || lower.includes('bank') || lower.includes('statement')) {
+    } else if (lower.includes('pension') || lower.includes('jeevan pramaan') || lower.includes('life certificate')) {
+      return res.json({
+        summary: 'This is an official notice regarding submission of your Annual Life Certificate (Jeevan Pramaan) for pension continuation.',
+        actions: [
+          'Visit your nearby bank branch, post office, or use the Jeevan Pramaan digital mobile app with face authentication.',
+          'Submit your biometric or physical life certificate before the deadline.',
+          'Keep the submission receipt safely for your records.'
+        ],
+        deadline: '30 November 2026'
+      });
+    } else if (lower.includes('tax') || lower.includes('bank') || lower.includes('statement')) {
       return res.json({
         summary: 'This is an official annual statement confirming your pension or account interest credit. It is for your information.',
         actions: [
@@ -159,15 +238,16 @@ app.post('/api/scam', async (req, res) => {
 
         const rawJson = await callGemini(trimmed, systemPrompt, true);
         if (rawJson) {
-          const cleanJson = rawJson.replace(/^\s*```json/i, '').replace(/```\s*$/i, '').trim();
-          const parsed = JSON.parse(cleanJson);
-          const validVerdicts = ['Safe', 'Suspicious', 'Danger'];
-          const verdict = validVerdicts.includes(parsed.verdict) ? parsed.verdict : 'Suspicious';
-          return res.json({
-            verdict,
-            reasons: Array.isArray(parsed.reasons) ? parsed.reasons : ['Message uses unverified requests.'],
-            advice: parsed.advice || 'When in doubt, do not reply and ask a trusted family member.'
-          });
+          const parsed = extractJson(rawJson);
+          if (parsed && typeof parsed === 'object') {
+            const validVerdicts = ['Safe', 'Suspicious', 'Danger'];
+            const verdict = validVerdicts.includes(parsed.verdict) ? parsed.verdict : 'Suspicious';
+            return res.json({
+              verdict,
+              reasons: Array.isArray(parsed.reasons) ? parsed.reasons : ['Message uses unverified requests.'],
+              advice: parsed.advice || 'When in doubt, do not reply and ask a trusted family member.'
+            });
+          }
         }
       } catch (aiErr) {
         console.error('Gemini scam error, using realistic fallback:', aiErr.message);
@@ -258,6 +338,10 @@ app.post('/api/ask', async (req, res) => {
       answer = simple
         ? 'To make soothing ginger tea: boil one cup of water with two small slices of crushed ginger. Add a drop of honey when warm. It soothes your throat and warms your chest wonderfully!'
         : 'A warm herbal ginger infusion is wonderful: simmer fresh ginger slices and a crushed cardamom pod in boiling water for 5 minutes. Strain into your favorite cup and add honey when comfortably warm.';
+    } else if (lower.includes('video') || lower.includes('screen') || lower.includes('recording') || lower.includes('photo of mine')) {
+      answer = simple
+        ? 'Making a video with your screen and photo is very simple: 1. On your Windows laptop, open the free built-in app called "Clipchamp" or "Snipping Tool". 2. Open your photo on your screen in one corner so it is visible. 3. Click the Record button and speak calmly into your laptop microphone. 4. When done, click Stop and then click Save Video.'
+        : 'To record your laptop screen along with your photo: 1. Press Windows Key + Shift + R to open the Snipping Tool Screen Recorder, or open Microsoft Clipchamp (built-in on Windows 11). 2. In Clipchamp, click "Record & Create", select "Screen and Camera", or open your photo in a window beside what you want to show. 3. Click the red Record button, speak clearly, and when finished, click Stop and Save.';
     } else if (lower.includes('weather')) {
       answer = 'The weather is pleasant today! It is a lovely time to sit by the balcony or window for some gentle natural light and fresh air.';
     }
@@ -266,6 +350,96 @@ app.post('/api/ask', async (req, res) => {
   } catch (err) {
     console.error('Unexpected ask error:', err);
     return res.status(200).json({ error: 'Saathi could not answer your question right now. Please try asking again.' });
+  }
+});
+
+// 4. Prescription OCR & Reminders Endpoint
+app.post('/api/prescription', async (req, res) => {
+  try {
+    const { image, mimeType } = req.body || {};
+    if (!image || typeof image !== 'string' || !image.trim()) {
+      return res.status(400).json({ error: 'Please provide a prescription image or document.' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const effectiveMime = (mimeType && allowedMimes.includes(mimeType)) ? mimeType : 'image/jpeg';
+    const cleaned = cleanBase64(image);
+
+    if (!isValidBase64(image)) {
+      return res.status(400).json({ error: 'Invalid base64 file encoding.' });
+    }
+
+    if (process.env.GEMINI_API_KEY && process.env.MOCK !== '1') {
+      try {
+        const parts = [
+          {
+            inlineData: {
+              mimeType: effectiveMime,
+              data: cleaned
+            }
+          },
+          {
+            text: 'Read this doctor prescription carefully.\n' +
+              'RULES:\n' +
+              '1. Extract ONLY what is clearly written. Never guess or invent dosages.\n' +
+              '2. If handwriting or text is blank or unreadable, set "readable" to false and medicines to [].\n' +
+              '3. Format each time as 24-hour "HH:MM" (e.g. "08:00", "13:30", "21:00").\n' +
+              '4. Max 20 medicines.\n' +
+              'Output valid JSON matching this schema:\n' +
+              '{\n  "readable": boolean,\n  "doctor": string or null,\n  "medicines": [\n    {\n      "name": "string",\n      "dose": "string",\n      "times": ["HH:MM"],\n      "instructions": "string",\n      "days": number\n    }\n  ],\n  "notes": "string"\n}'
+          }
+        ];
+
+        const raw = await callGemini(parts, 'Extract prescription information accurately and respectfully.', true);
+        if (raw) {
+          const parsed = extractJson(raw);
+          if (parsed && typeof parsed === 'object') {
+            const medicines = Array.isArray(parsed.medicines)
+              ? parsed.medicines.slice(0, 20).map(m => ({
+                  name: String(m.name || '').slice(0, 100),
+                  dose: String(m.dose || '').slice(0, 50),
+                  times: Array.isArray(m.times) && m.times.length > 0
+                    ? m.times.filter(t => /^\d{2}:\d{2}$/.test(String(t)))
+                    : ['08:00'],
+                  instructions: String(m.instructions || '').slice(0, 200),
+                  days: typeof m.days === 'number' ? m.days : 30
+                }))
+              : [];
+
+            return res.json({
+              readable: parsed.readable !== false,
+              doctor: typeof parsed.doctor === 'string' ? parsed.doctor.slice(0, 100) : null,
+              medicines,
+              notes: typeof parsed.notes === 'string' ? parsed.notes.slice(0, 300) : ''
+            });
+          }
+        }
+      } catch (aiErr) {
+        console.error('Gemini prescription error, using realistic fallback:', aiErr.message);
+      }
+    }
+
+    return res.json(MOCK_DATA.prescription);
+  } catch (err) {
+    console.error('Unexpected prescription error:', err);
+    return res.status(200).json({ error: 'Saathi could not process this prescription right now. Please try again.' });
+  }
+});
+
+// 5. Today Card Endpoint
+app.post('/api/today', (req, res) => {
+  try {
+    const { name } = req.body || {};
+    const elderName = (name && typeof name === 'string') ? name.trim() : '';
+    const greeting = elderName ? `Namaste, ${elderName} Ji! Have a blessed, peaceful day.` : 'Namaste! Have a blessed, peaceful day.';
+    return res.json({
+      greeting,
+      tip: 'Drink a glass of lukewarm water before your morning meal. It aids smooth digestion, keeps joints lubricated, and brings comforting warmth.',
+      date: new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    });
+  } catch (err) {
+    console.error('Unexpected today error:', err);
+    return res.status(200).json({ error: 'Could not fetch today card.' });
   }
 });
 

@@ -208,6 +208,10 @@
     .family-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .family-card { background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
 
+    .med-edit-card { background-color: var(--bg-page); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    .form-label { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; display: block; }
+    .med-edit-card input[type="text"] { margin-bottom: 10px; }
+
     .app-screen { display: none; }
     .app-screen.active { display: block; }
     .footer { text-align: center; padding: 20px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; border-top: 1px solid var(--border-color); }
@@ -256,7 +260,7 @@
         <h2 class="card-title"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Today's Schedule & Wellness</h2>
 
         <div class="result-label"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg> Medicines for Today:</div>
-        <div class="medicine-list">
+        <div id="today-meds-list" class="medicine-list">
           <label class="medicine-item" id="med-1-label">
             <input type="checkbox" id="med-1" onchange="toggleMed('med-1', 'med-1-label')">
             <span><strong>Morning (8:00 AM):</strong> Blood Pressure tablet with water</span>
@@ -269,6 +273,11 @@
             <input type="checkbox" id="med-3" onchange="toggleMed('med-3', 'med-3-label')">
             <span><strong>Night (9:00 PM):</strong> Calcium tablet with warm milk</span>
           </label>
+        </div>
+        <div style="margin-top: 10px; margin-bottom: 16px;">
+          <button type="button" class="btn btn-secondary" style="min-height: 52px; padding: 6px 16px; font-size: 0.95rem;" onclick="showScreen('rx')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg> Add / Scan Prescription &rarr;
+          </button>
         </div>
 
         <div class="tip-box">
@@ -306,6 +315,14 @@
           <div style="color: var(--accent-color); margin-bottom: 10px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
           <span class="tile-name">My Family</span>
           <span class="tile-desc">Quickly call your loved ones or get help drafting a message.</span>
+        </button>
+
+        <button type="button" id="tile-rx" class="tile-btn" onclick="showScreen('rx')" aria-label="Go to My Medicines and Prescriptions">
+          <div style="color: var(--accent-color); margin-bottom: 10px;">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>
+          </div>
+          <span class="tile-name">My Medicines</span>
+          <span class="tile-desc">Scan prescription photo, track daily doses, and export calendar.</span>
         </button>
       </div>
     </section>
@@ -604,6 +621,102 @@
       </div>
     </section>
 
+    <!-- SCREEN 6: MY MEDICINES & PRESCRIPTIONS -->
+    <section id="screen-rx" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem; display: inline-flex; align-items: center; gap: 8px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>
+          My Medicines &amp; Prescriptions
+        </h2>
+      </div>
+
+      <!-- Scan Card -->
+      <div class="card">
+        <h3 class="card-title"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Scan Doctor's Prescription</h3>
+        <p style="margin-bottom: 14px; color: var(--text-muted);">Tip: Hold your paper flat in good room lighting for best clarity.</p>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+          <!-- Camera button -->
+          <label for="rx-photo" class="btn btn-primary" style="cursor: pointer;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <span>Take Photo of Prescription</span>
+          </label>
+          <input type="file" id="rx-photo" accept="image/*" capture="environment" style="display: none;" onchange="onRxFileSelected(event)">
+
+          <!-- Gallery / PDF button -->
+          <label for="rx-gallery" class="btn btn-secondary" style="cursor: pointer;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span>Choose Image or PDF</span>
+          </label>
+          <input type="file" id="rx-gallery" accept="image/*,application/pdf" style="display: none;" onchange="onRxFileSelected(event)">
+
+          <button type="button" class="btn btn-sample" onclick="loadSamplePrescription()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg> Try Sample Prescription
+          </button>
+        </div>
+
+        <img id="rx-preview" style="display: none; max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 12px; margin-bottom: 14px; border: 2px solid var(--border-color);" alt="Prescription preview">
+        <div id="rx-pdf-badge" style="display: none; padding: 12px; background-color: var(--bg-page); border-radius: 10px; border: 2px solid var(--border-color); font-weight: 700; margin-bottom: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> <span id="rx-pdf-filename">Prescription PDF attached</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="rx-loading" class="status-box status-loading">
+          <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Saathi is reading doctor's prescription accurately...</span>
+        </div>
+
+        <!-- Error State -->
+        <div id="rx-error" class="status-box status-error">
+          <span id="rx-error-msg">Please try a clearer photo. Keep the paper flat in bright light.</span>
+        </div>
+      </div>
+
+      <!-- Prescription Review Card -->
+      <div id="rx-review" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <h3 class="card-title" style="margin-bottom: 0;">Review Extracted Medicines</h3>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px;" onclick="speakReviewMedicines()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Read Aloud
+          </button>
+        </div>
+        <p id="rx-doctor-name" style="font-weight: 700; color: var(--accent-color); margin-bottom: 14px;"></p>
+        <div id="rx-medicines-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+
+        <button type="button" id="rx-save-all" class="btn btn-primary" style="width: 100%; margin-top: 18px;" onclick="savePendingMedicines()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Save These Medicines to My Schedule</span>
+        </button>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 10px;">Please confirm all doses with your physician or pharmacist. AI assistance can make mistakes.</p>
+      </div>
+
+      <!-- Saved Medicines & Reminders Card -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <h3 class="card-title" style="margin-bottom: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg> Active Medicine Reminders</h3>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px;" onclick="speakSavedSchedule()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Read Today's Medicines
+          </button>
+        </div>
+
+        <div id="rx-saved-list" class="medicine-list"></div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
+          <button type="button" id="rx-calendar" class="btn btn-secondary" onclick="downloadCalendarICS()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Download Calendar (.ics)</span>
+          </button>
+
+          <button type="button" id="rx-share-wa" class="btn btn-secondary" onclick="shareMedicinesWhatsApp()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <span>Share Schedule via WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer class="footer">
@@ -615,13 +728,16 @@
       baseFontSize: 20,
       highContrast: false,
       simplerWords: false,
-      currentSpeech: null
+      currentSpeech: null,
+      pendingMedicines: [],
+      reminders: []
     };
 
     window.addEventListener('DOMContentLoaded', () => {
       initGreeting();
       initAccessibilityControls();
       loadSavedSettings();
+      initMedicineReminders();
     });
 
     function initGreeting() {
@@ -1082,6 +1198,388 @@
       const text = document.getElementById('family-msg-text').value;
       const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
       window.open(url, '_blank');
+    }
+
+    // ==========================================
+    // MEDICINE REMINDERS & PRESCRIPTION OCR
+    // ==========================================
+    function safeGetStorage(key, fallback) {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : fallback;
+      } catch (e) {
+        console.warn('Storage read error for key ' + key + ':', e.message);
+        return fallback;
+      }
+    }
+
+    function safeSetStorage(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        console.warn('Storage write error for key ' + key + ':', e.message);
+      }
+    }
+
+    const DEFAULT_MEDICINES = [
+      { id: 'med-1', name: 'Blood Pressure tablet', dose: '5 mg', times: ['08:00'], instructions: 'With a glass of room-temperature water', takenToday: false },
+      { id: 'med-2', name: 'Vitamin D capsule', dose: '60k IU', times: ['13:30'], instructions: 'After lunch', takenToday: false },
+      { id: 'med-3', name: 'Calcium tablet', dose: '500 mg', times: ['21:00'], instructions: 'With warm milk before sleep', takenToday: false }
+    ];
+
+    function initMedicineReminders() {
+      const saved = safeGetStorage('saathi_reminders', null);
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        state.reminders = saved;
+      } else {
+        state.reminders = [...DEFAULT_MEDICINES];
+      }
+      renderSavedMedicines();
+    }
+
+    function toggleMedTaken(id) {
+      const item = state.reminders.find(m => m.id === id);
+      if (item) {
+        item.takenToday = !item.takenToday;
+        safeSetStorage('saathi_reminders', state.reminders);
+        renderSavedMedicines();
+      }
+    }
+
+    function deleteSavedMed(id) {
+      state.reminders = state.reminders.filter(m => m.id !== id);
+      safeSetStorage('saathi_reminders', state.reminders);
+      renderSavedMedicines();
+    }
+
+    function renderSavedMedicines() {
+      const rxList = document.getElementById('rx-saved-list');
+      const homeList = document.getElementById('today-meds-list');
+      if (!rxList) return;
+
+      rxList.innerHTML = '';
+      if (homeList) homeList.innerHTML = '';
+
+      if (!state.reminders || state.reminders.length === 0) {
+        rxList.innerHTML = '<p style="color: var(--text-muted); font-weight: 500;">No medicines added yet. Tap "Take Photo of Prescription" above to scan your doctor\'s prescription.</p>';
+        return;
+      }
+
+      state.reminders.forEach((med, idx) => {
+        const timesStr = (med.times || []).join(', ');
+
+        // Render in Rx Screen
+        const rxItem = document.createElement('div');
+        rxItem.className = 'medicine-item' + (med.takenToday ? ' taken' : '');
+        rxItem.style.justifyContent = 'space-between';
+        rxItem.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <input type="checkbox" id="rx-check-${idx}" ${med.takenToday ? 'checked' : ''} onchange="toggleMedTaken('${med.id}')" aria-label="Mark ${med.name} as taken">
+            <span><strong>${timesStr || 'Daily'}:</strong> ${med.name} ${med.dose ? '(' + med.dose + ')' : ''} ${med.instructions ? '<br><small style="color: var(--text-muted);">' + med.instructions + '</small>' : ''}</span>
+          </div>
+          <button type="button" class="btn btn-secondary" style="min-height: 48px; padding: 6px 12px; margin-left: 10px;" onclick="deleteSavedMed('${med.id}')" aria-label="Delete ${med.name}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        `;
+        rxList.appendChild(rxItem);
+
+        // Render in Home Screen Today Card
+        if (homeList) {
+          const homeLabel = document.createElement('label');
+          homeLabel.className = 'medicine-item' + (med.takenToday ? ' taken' : '');
+          homeLabel.id = 'home-med-lbl-' + idx;
+          homeLabel.innerHTML = `
+            <input type="checkbox" id="home-med-${idx}" ${med.takenToday ? 'checked' : ''} onchange="toggleMedTaken('${med.id}')">
+            <span><strong>${timesStr || 'Daily'}:</strong> ${med.name} ${med.dose ? '(' + med.dose + ')' : ''} - ${med.instructions || 'As prescribed'}</span>
+          `;
+          homeList.appendChild(homeLabel);
+        }
+      });
+    }
+
+    async function onRxFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      await handleRxFile(file);
+    }
+
+    function resizeImage(file, maxDim = 1280) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const base64 = dataUrl.split(',')[1];
+            resolve({ base64, mimeType: 'image/jpeg', dataUrl });
+          };
+          img.onerror = () => reject(new Error('Image decode error'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('File read error'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = reader.result;
+          const base64 = typeof res === 'string' && res.includes(',') ? res.split(',')[1] : res;
+          resolve(base64);
+        };
+        reader.onerror = () => reject(new Error('File read error'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleRxFile(file) {
+      const loading = document.getElementById('rx-loading');
+      const errorBox = document.getElementById('rx-error');
+      const errorMsg = document.getElementById('rx-error-msg');
+      const reviewBox = document.getElementById('rx-review');
+      const previewImg = document.getElementById('rx-preview');
+      const pdfBadge = document.getElementById('rx-pdf-badge');
+      const pdfName = document.getElementById('rx-pdf-filename');
+
+      previewImg.style.display = 'none';
+      pdfBadge.style.display = 'none';
+      errorBox.style.display = 'none';
+      reviewBox.style.display = 'none';
+      loading.style.display = 'flex';
+
+      try {
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        let base64 = '';
+        let mimeType = isPdf ? 'application/pdf' : 'image/jpeg';
+
+        if (isPdf) {
+          base64 = await readFileAsBase64(file);
+          pdfName.textContent = 'Prescription PDF: ' + file.name;
+          pdfBadge.style.display = 'block';
+        } else {
+          const resized = await resizeImage(file, 1280);
+          base64 = resized.base64;
+          mimeType = resized.mimeType;
+          previewImg.src = resized.dataUrl;
+          previewImg.style.display = 'block';
+        }
+
+        const res = await fetch('/api/prescription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, mimeType })
+        });
+
+        const data = await res.json();
+        loading.style.display = 'none';
+
+        if (data.error) {
+          errorMsg.textContent = data.error;
+          errorBox.style.display = 'flex';
+          return;
+        }
+
+        if (!data.readable || !Array.isArray(data.medicines) || data.medicines.length === 0) {
+          errorMsg.textContent = 'Please try a clearer photo. Keep the paper flat in bright light.';
+          errorBox.style.display = 'flex';
+          return;
+        }
+
+        state.pendingMedicines = data.medicines;
+        document.getElementById('rx-doctor-name').textContent = data.doctor ? ('Prescribed by: ' + data.doctor) : 'Doctor Prescription';
+        renderReviewMedicines(data.medicines);
+        reviewBox.style.display = 'block';
+        speakText('Prescription scanned successfully! Found ' + data.medicines.length + ' medicines.');
+      } catch (err) {
+        loading.style.display = 'none';
+        errorMsg.textContent = 'Could not process prescription. Let us try again.';
+        errorBox.style.display = 'flex';
+      }
+    }
+
+    function renderReviewMedicines(meds) {
+      const list = document.getElementById('rx-medicines-list');
+      list.innerHTML = '';
+      meds.forEach((m, idx) => {
+        const card = document.createElement('div');
+        card.className = 'med-edit-card';
+        card.innerHTML = `
+          <label class="form-label">Medicine Name:</label>
+          <input type="text" id="rx-name-${idx}" value="${m.name || ''}" placeholder="Medicine name">
+          <label class="form-label">Dosage & Strength:</label>
+          <input type="text" id="rx-dose-${idx}" value="${m.dose || ''}" placeholder="e.g. 5 mg">
+          <label class="form-label">Times (24-hr format like 08:00, 20:00):</label>
+          <input type="text" id="rx-times-${idx}" value="${(m.times || []).join(', ')}" placeholder="08:00, 20:00">
+          <label class="form-label">Doctor Instructions:</label>
+          <input type="text" id="rx-inst-${idx}" value="${m.instructions || ''}" placeholder="e.g. After breakfast">
+          <button type="button" class="btn btn-secondary" style="min-height: 48px; padding: 8px 16px; margin-top: 6px;" onclick="removePendingMed(${idx})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Remove
+          </button>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function removePendingMed(idx) {
+      state.pendingMedicines.splice(idx, 1);
+      renderReviewMedicines(state.pendingMedicines);
+    }
+
+    function savePendingMedicines() {
+      state.pendingMedicines.forEach((m, idx) => {
+        const nameInput = document.getElementById('rx-name-' + idx);
+        const doseInput = document.getElementById('rx-dose-' + idx);
+        const timesInput = document.getElementById('rx-times-' + idx);
+        const instInput = document.getElementById('rx-inst-' + idx);
+        if (nameInput) m.name = nameInput.value.trim();
+        if (doseInput) m.dose = doseInput.value.trim();
+        if (timesInput) {
+          m.times = timesInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        }
+        if (instInput) m.instructions = instInput.value.trim();
+      });
+
+      state.pendingMedicines.forEach(m => {
+        if (m.name) {
+          state.reminders.push({
+            id: 'rx-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+            name: m.name,
+            dose: m.dose || '',
+            times: m.times && m.times.length > 0 ? m.times : ['08:00'],
+            instructions: m.instructions || '',
+            takenToday: false
+          });
+        }
+      });
+
+      safeSetStorage('saathi_reminders', state.reminders);
+      document.getElementById('rx-review').style.display = 'none';
+      renderSavedMedicines();
+      speakText('Medicines saved to your daily schedule!');
+    }
+
+    function loadSamplePrescription() {
+      const reviewBox = document.getElementById('rx-review');
+      state.pendingMedicines = [
+        { name: 'Amlodipine', dose: '5 mg', times: ['08:00'], instructions: 'After breakfast with water for BP' },
+        { name: 'Metformin', dose: '500 mg', times: ['08:00', '20:00'], instructions: 'Take with morning and evening meals' },
+        { name: 'Calcium + Vit D3', dose: '500 mg', times: ['21:00'], instructions: 'With warm milk at bedtime for bones' }
+      ];
+      document.getElementById('rx-doctor-name').textContent = 'Dr. A. K. Sharma, MD (Senior Geriatric Care)';
+      renderReviewMedicines(state.pendingMedicines);
+      reviewBox.style.display = 'block';
+      speakText('Sample prescription loaded with 3 medicines. You can edit or save them.');
+    }
+
+    function downloadCalendarICS() {
+      if (!state.reminders || state.reminders.length === 0) {
+        alert('No medicines saved yet. Please add or scan a prescription first.');
+        return;
+      }
+
+      const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Saathi//Elder Companion//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH'
+      ];
+
+      state.reminders.forEach((m, idx) => {
+        const times = (m.times && m.times.length > 0) ? m.times : ['08:00'];
+        times.forEach((t, tIdx) => {
+          const parts = t.split(':');
+          const hh = String(parts[0] || '08').padStart(2, '0');
+          const mm = String(parts[1] || '00').padStart(2, '0');
+          const now = new Date();
+          const y = now.getFullYear();
+          const mo = String(now.getMonth() + 1).padStart(2, '0');
+          const d = String(now.getDate()).padStart(2, '0');
+          const dtStart = `${y}${mo}${d}T${hh}${mm}00`;
+
+          lines.push(
+            'BEGIN:VEVENT',
+            `UID:saathi-med-${idx}-${tIdx}-${Date.now()}@saathi.local`,
+            `DTSTAMP:${y}${mo}${d}T000000Z`,
+            `DTSTART:${dtStart}`,
+            `SUMMARY:Medicine Reminder: ${m.name} ${m.dose || ''}`,
+            `DESCRIPTION:${m.instructions || 'Take medicine on time as prescribed.'}\\nCreated by Saathi Senior Citizen Companion`,
+            'RRULE:FREQ=DAILY',
+            'BEGIN:VALARM',
+            'TRIGGER:-PT5M',
+            'ACTION:DISPLAY',
+            `DESCRIPTION:Time for ${m.name}`,
+            'END:VALARM',
+            'END:VEVENT'
+          );
+        });
+      });
+
+      lines.push('END:VCALENDAR');
+      const icsContent = lines.join('\r\n');
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'saathi-medicines.ics';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    function shareMedicinesWhatsApp() {
+      if (!state.reminders || state.reminders.length === 0) {
+        alert('No medicines saved yet. Please add or scan a prescription first.');
+        return;
+      }
+
+      let text = 'Namaste! Here is my daily medicine schedule from Saathi:\n\n';
+      state.reminders.forEach(m => {
+        const times = (m.times || []).join(', ');
+        text += `• ${m.name}${m.dose ? ' (' + m.dose + ')' : ''}${times ? ' at ' + times : ''}${m.instructions ? ' - ' + m.instructions : ''}\n`;
+      });
+      text += '\nShared with love from Saathi Senior Citizen Companion.';
+      const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
+      window.open(url, '_blank');
+    }
+
+    function speakSavedSchedule() {
+      if (!state.reminders || state.reminders.length === 0) {
+        speakText('You have no medicines saved in your schedule yet.');
+        return;
+      }
+      let text = 'Here is your daily medicine schedule: ';
+      state.reminders.forEach(m => {
+        const times = (m.times || []).join(' and ');
+        text += m.name + (m.dose ? ' ' + m.dose : '') + (times ? ' at ' + times : '') + '. ' + (m.instructions ? m.instructions + '. ' : '');
+      });
+      speakText(text);
+    }
+
+    function speakReviewMedicines() {
+      if (!state.pendingMedicines || state.pendingMedicines.length === 0) return;
+      let text = 'Prescription has ' + state.pendingMedicines.length + ' medicines: ';
+      state.pendingMedicines.forEach(m => {
+        text += m.name + (m.dose ? ' ' + m.dose : '') + '. ';
+      });
+      speakText(text);
     }
   </script>
 </body>

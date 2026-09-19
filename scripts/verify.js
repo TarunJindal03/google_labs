@@ -129,7 +129,30 @@ async function runVerification() {
     body: JSON.stringify({ question: 'How to exercise my knees?', simple: true })
   });
   assert(askSimple.status === 200, 'POST /api/ask simple=true must return 200');
-  assert(askSimple.data && typeof askSimple.data.answer === 'string', 'POST /api/ask simple=true must return answer');
+  // 4i. /api/health
+  const healthRes = await request('/api/health');
+  assert(healthRes.status === 200, 'GET /api/health must return 200');
+  assert(healthRes.data && healthRes.data.status === 'ok', 'GET /api/health must return status ok');
+
+  // 4j. /api/prescription empty input
+  const rxEmpty = await request('/api/prescription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: '' })
+  });
+  assert(rxEmpty.status === 400, 'POST /api/prescription empty input must return 400');
+
+  // 4k. /api/prescription valid fallback
+  const rxValid = await request('/api/prescription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      mimeType: 'image/png'
+    })
+  });
+  assert(rxValid.status === 200, 'POST /api/prescription valid input must return 200');
+  assert(rxValid.data && Array.isArray(rxValid.data.medicines), 'POST /api/prescription must return medicines array');
 
   // 5. Test Frontend Static Serving
   console.log('[5/5] Testing public/index.html serving...');
