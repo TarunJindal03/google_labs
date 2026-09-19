@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saathi - Senior Citizen Daily Companion</title>
+  <style>
+    :root {
+      --base-font-size: 20px;
+      --bg-page: #FAF7F2;
+      --bg-card: #FFFFFF;
+      --text-main: #1E293B;
+      --text-muted: #475569;
+      --border-color: #CBD5E1;
+      --accent-color: #D97706;
+      --btn-bg: #D97706;
+      --btn-text: #FFFFFF;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --badge-safe-bg: #DCFCE7;
+      --badge-safe-text: #14532D;
+      --badge-safe-border: #22C55E;
+      --badge-suspicious-bg: #FEF3C7;
+      --badge-suspicious-text: #78350F;
+      --badge-suspicious-border: #F59E0B;
+      --badge-danger-bg: #FEE2E2;
+      --badge-danger-text: #7F1D1D;
+      --badge-danger-border: #EF4444;
+    }
+
+    body.high-contrast {
+      --bg-page: #000000;
+      --bg-card: #121212;
+      --text-main: #FFFFFF;
+      --text-muted: #E2E8F0;
+      --border-color: #FACC15;
+      --accent-color: #FACC15;
+      --btn-bg: #FACC15;
+      --btn-text: #000000;
+      --card-shadow: 0 0 0 2px #FACC15;
+      --badge-safe-bg: #052E16;
+      --badge-safe-text: #86EFAC;
+      --badge-safe-border: #4ADE80;
+      --badge-suspicious-bg: #451A03;
+      --badge-suspicious-text: #FDE68A;
+      --badge-suspicious-border: #FACC15;
+      --badge-danger-bg: #450A0A;
+      --badge-danger-text: #FECACA;
+      --badge-danger-border: #F87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: var(--base-font-size); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #accessibility-bar {
+      background-color: var(--bg-card);
+      border-bottom: 3px solid var(--border-color);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .a11y-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .a11y-label { font-weight: 700; font-size: 0.95rem; }
+    #font-slider { width: 140px; height: 28px; cursor: pointer; accent-color: var(--accent-color); }
+
+    .toggle-btn {
+      min-height: 56px;
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: 2px solid var(--border-color);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-btn.active {
+      background-color: var(--accent-color);
+      color: var(--btn-text);
+      border-color: var(--accent-color);
+    }
+
+    .container { width: 100%; max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; flex: 1; }
+
+    button, .btn {
+      min-height: 56px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 14px 24px;
+      border: 2px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+
+    .btn-primary { background-color: var(--btn-bg); color: var(--btn-text); }
+    .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 2px solid var(--border-color); }
+    .btn-sample {
+      min-height: 56px;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      border: 2px dashed var(--border-color);
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    .screen-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .greeting-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+    .greeting-subtitle { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 16px; }
+    .today-card { border-left: 8px solid var(--accent-color); }
+    .card-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+
+    .medicine-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .medicine-item {
+      display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+      background-color: var(--bg-page); border-radius: 10px; border: 2px solid var(--border-color);
+      cursor: pointer; user-select: none;
+    }
+    .medicine-item input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent-color); }
+    .medicine-item.taken { text-decoration: line-through; opacity: 0.7; }
+
+    .tip-box { padding: 16px; background-color: var(--bg-page); border-radius: 12px; border: 2px solid var(--border-color); margin-top: 14px; }
+
+    .tiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 8px; }
+    .tile-btn {
+      min-height: 140px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+      padding: 24px; background-color: var(--bg-card); border: 3px solid var(--border-color); border-radius: 18px;
+      text-align: left; cursor: pointer; box-shadow: var(--card-shadow);
+    }
+    .tile-btn:hover { border-color: var(--accent-color); }
+    .tile-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .tile-name { font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
+    .tile-desc { font-size: 0.95rem; color: var(--text-muted); font-weight: 500; }
+
+    textarea, input[type="text"] {
+      width: 100%; font-size: 1.05rem; font-family: inherit; padding: 16px; border-radius: 12px;
+      border: 2px solid var(--border-color); background-color: var(--bg-card); color: var(--text-main);
+      margin-bottom: 16px;
+    }
+
+    .status-box { display: none; padding: 20px; border-radius: 14px; margin: 16px 0; font-weight: 600; font-size: 1.1rem; align-items: center; gap: 14px; }
+    .status-loading { background-color: var(--bg-page); border: 2px solid var(--border-color); color: var(--text-main); }
+    .status-error { background-color: var(--badge-danger-bg); color: var(--badge-danger-text); border: 2px solid var(--badge-danger-border); }
+
+    .verdict-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 14px; font-size: 1.4rem; font-weight: 900; margin-bottom: 20px; border: 3px solid; }
+    .verdict-safe { background-color: var(--badge-safe-bg); color: var(--badge-safe-text); border-color: var(--badge-safe-border); }
+    .verdict-suspicious { background-color: var(--badge-suspicious-bg); color: var(--badge-suspicious-text); border-color: var(--badge-suspicious-border); }
+    .verdict-danger { background-color: var(--badge-danger-bg); color: var(--badge-danger-text); border-color: var(--badge-danger-border); }
+
+    .result-section { margin-bottom: 18px; }
+    .result-label { font-weight: 800; font-size: 1.15rem; margin-bottom: 8px; }
+    .action-steps { list-style-type: none; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .action-steps li { background-color: var(--bg-page); border: 2px solid var(--border-color); padding: 12px 16px; border-radius: 10px; font-weight: 600; }
+    .deadline-badge { display: inline-block; padding: 10px 18px; background-color: var(--badge-danger-bg); color: var(--badge-danger-text); border: 2px solid var(--badge-danger-border); border-radius: 10px; font-weight: 800; font-size: 1.1rem; }
+
+    .mic-button-container { display: flex; flex-direction: column; align-items: center; margin: 20px 0 28px; }
+    .mic-btn { width: 100px; height: 100px; border-radius: 50%; background-color: var(--accent-color); color: var(--btn-text); border: none; font-size: 2.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .mic-btn.listening { background-color: #DC2626; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+
+    .chips-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .chip-btn { min-height: 56px; padding: 8px 16px; font-size: 0.95rem; font-weight: 600; background-color: var(--bg-page); border: 2px solid var(--border-color); border-radius: 20px; color: var(--text-main); cursor: pointer; }
+
+    .family-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .family-card { background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+
+    .app-screen { display: none; }
+    .app-screen.active { display: block; }
+    .footer { text-align: center; padding: 20px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; border-top: 1px solid var(--border-color); }
+  </style>
+</head>
+<body>
+
+  <!-- Persistent Accessibility Bar -->
+  <header id="accessibility-bar">
+    <div class="a11y-group">
+      <span class="a11y-label">?? Text Size:</span>
+      <input type="range" id="font-slider" min="20" max="32" value="20" step="2" aria-label="Text Size Slider">
+      <span id="font-size-indicator" style="font-weight: 700; min-width: 45px;">20px</span>
+    </div>
+
+    <div class="a11y-group">
+      <button type="button" id="contrast-toggle" class="toggle-btn" onclick="toggleContrast()">
+        ?? High Contrast
+      </button>
+
+      <button type="button" id="simple-toggle" class="toggle-btn" onclick="toggleSimple()">
+        ?? Simpler Words: OFF
+      </button>
+
+      <button type="button" id="stop-voice-btn" class="toggle-btn" onclick="stopAllSpeech()" style="display: none;">
+        ?? Stop Voice
+      </button>
+
+      <button type="button" id="back-home" class="btn btn-secondary" onclick="showScreen('home')" style="display: none;">
+        ? Back to Home
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- SCREEN 1: HOME DASHBOARD -->
+    <section id="screen-home" class="app-screen active">
+      <div class="card">
+        <h1 id="greeting-text" class="greeting-title">Namaste! ??</h1>
+        <p id="greeting-sub" class="greeting-subtitle">Welcome to Saathi. We are here to help you anytime today.</p>
+      </div>
+
+      <!-- Today Card (Medicine Reminders + Daily Wellness Tip) -->
+      <div class="card today-card">
+        <h2 class="card-title">?? Today's Schedule & Wellness</h2>
+
+        <div class="result-label">?? Medicines for Today:</div>
+        <div class="medicine-list">
+          <label class="medicine-item" id="med-1-label">
+            <input type="checkbox" id="med-1" onchange="toggleMed('med-1', 'med-1-label')">
+            <span><strong>Morning (8:00 AM):</strong> Blood Pressure tablet with water</span>
+          </label>
+          <label class="medicine-item" id="med-2-label">
+            <input type="checkbox" id="med-2" onchange="toggleMed('med-2', 'med-2-label')">
+            <span><strong>Afternoon (1:30 PM):</strong> Vitamin D after lunch</span>
+          </label>
+          <label class="medicine-item" id="med-3-label">
+            <input type="checkbox" id="med-3" onchange="toggleMed('med-3', 'med-3-label')">
+            <span><strong>Night (9:00 PM):</strong> Calcium tablet with warm milk</span>
+          </label>
+        </div>
+
+        <div class="tip-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="result-label" style="margin-bottom: 0;">?? Tip of the Day:</div>
+            <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px; font-size: 0.95rem;" onclick="speakText(document.getElementById('tip-text').innerText)">
+              ?? Listen
+            </button>
+          </div>
+          <p id="tip-text">Drink a glass of lukewarm water 30 minutes before your meal. It aids smooth digestion, keeps joints lubricated, and brings comforting warmth.</p>
+        </div>
+      </div>
+
+      <!-- Big Navigation Tiles -->
+      <div class="tiles-grid">
+        <button type="button" class="tile-btn" onclick="showScreen('simplify')">
+          <span class="tile-icon">??</span>
+          <span class="tile-name">Simplify This</span>
+          <span class="tile-desc">Understand letters, electricity bills, and bank SMS in plain words.</span>
+        </button>
+
+        <button type="button" class="tile-btn" onclick="showScreen('scam')">
+          <span class="tile-icon">???</span>
+          <span class="tile-name">Scam Check</span>
+          <span class="tile-desc">Paste any suspicious message to check if it is safe or a trap.</span>
+        </button>
+
+        <button type="button" class="tile-btn" onclick="showScreen('ask')">
+          <span class="tile-icon">???</span>
+          <span class="tile-name">Ask Anything</span>
+          <span class="tile-desc">Speak or type any question to your patient voice companion.</span>
+        </button>
+
+        <button type="button" class="tile-btn" onclick="showScreen('family')">
+          <span class="tile-icon">???????????</span>
+          <span class="tile-name">My Family</span>
+          <span class="tile-desc">Quickly call your loved ones or get help drafting a message.</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: SIMPLIFY THIS -->
+    <section id="screen-simplify" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          ? Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem;">?? Simplify This</h2>
+      </div>
+
+      <div class="card">
+        <label for="simplify-input" class="result-label">Paste confusing letter, bill, or SMS text:</label>
+        <textarea id="simplify-input" rows="5" placeholder="Example: Paste text from your electricity bill, hospital discharge, or bank SMS here..."></textarea>
+
+        <div style="margin-bottom: 16px;">
+          <span style="font-weight: 700; font-size: 0.95rem; display: block; margin-bottom: 8px;">Or try one of these sample documents:</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sample" onclick="loadSampleSimplify('electricity')">
+              ? Fake Electricity Bill
+            </button>
+            <button type="button" class="btn btn-sample" onclick="loadSampleSimplify('pension')">
+              ?? Fake Pension Letter
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="simplify-submit-btn" class="btn btn-primary" style="width: 100%;" onclick="submitSimplify()">
+          ? Explain In Simple Words
+        </button>
+
+        <!-- Loading State -->
+        <div id="simplify-loading" class="status-box status-loading">
+          <span>? Saathi is reading your document carefully and simplifying it for you...</span>
+        </div>
+
+        <!-- Error State -->
+        <div id="simplify-error" class="status-box status-error">
+          <span id="simplify-error-msg">Don't worry, something took too long. Let's try again.</span>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; margin-left: auto;" onclick="submitSimplify()">
+            ?? Retry
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div id="simplify-result" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="font-size: 1.3rem; font-weight: 800;">?? Simple Summary</h3>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px;" onclick="speakSimplifyResult()">
+            ?? Read Out Loud
+          </button>
+        </div>
+
+        <div class="result-section">
+          <p id="simplify-summary-text" style="font-size: 1.15rem; font-weight: 500;"></p>
+        </div>
+
+        <div id="simplify-deadline-container" class="result-section" style="display: none;">
+          <div class="result-label">? Important Deadline:</div>
+          <div id="simplify-deadline-text" class="deadline-badge"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-label">? What You Need To Do:</div>
+          <ul id="simplify-actions-list" class="action-steps"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: SCAM CHECK -->
+    <section id="screen-scam" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          ? Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem;">??? Scam Check</h2>
+      </div>
+
+      <div class="card">
+        <label for="scam-input" class="result-label">Paste the suspicious message or call notes:</label>
+        <textarea id="scam-input" rows="4" placeholder="Example: Dear customer, your electricity will be disconnected tonight. Update KYC immediately..."></textarea>
+
+        <div style="margin-bottom: 16px;">
+          <span style="font-weight: 700; font-size: 0.95rem; display: block; margin-bottom: 8px;">Or test with these common samples:</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sample" onclick="loadSampleScam('kyc')">
+              ?? Fake KYC Expired SMS
+            </button>
+            <button type="button" class="btn btn-sample" onclick="loadSampleScam('lottery')">
+              ?? Fake Lottery Winner SMS
+            </button>
+            <button type="button" class="btn btn-sample" onclick="loadSampleScam('safe_otp')">
+              ? Normal Bank OTP SMS
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="scam-submit-btn" class="btn btn-primary" style="width: 100%;" onclick="submitScam()">
+          ?? Check If This Is A Scam
+        </button>
+
+        <!-- Loading State -->
+        <div id="scam-loading" class="status-box status-loading">
+          <span>??? Saathi is analyzing this message for fraud tricks and safety...</span>
+        </div>
+
+        <!-- Error State -->
+        <div id="scam-error" class="status-box status-error">
+          <span id="scam-error-msg">Saathi could not check this message. Please try again.</span>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; margin-left: auto;" onclick="submitScam()">
+            ?? Retry
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div id="scam-result" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div id="scam-verdict-badge" class="verdict-badge"></div>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px;" onclick="speakScamResult()">
+            ?? Read Out Loud
+          </button>
+        </div>
+
+        <div class="result-section">
+          <div class="result-label">?? Why Saathi flagged this:</div>
+          <ul id="scam-reasons-list" class="action-steps"></ul>
+        </div>
+
+        <div class="result-section">
+          <div class="result-label">?? What You Should Do Next:</div>
+          <p id="scam-advice-text" style="font-size: 1.1rem; font-weight: 600; padding: 14px; background-color: var(--bg-page); border-radius: 10px; border: 2px solid var(--border-color);"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: ASK ANYTHING (VOICE COMPANION) -->
+    <section id="screen-ask" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          ? Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem;">??? Ask Anything</h2>
+      </div>
+
+      <div class="card">
+        <div class="mic-button-container">
+          <button type="button" id="mic-btn" class="mic-btn" onclick="toggleVoiceInput()" aria-label="Tap to speak">
+            ???
+          </button>
+          <div id="mic-status" class="mic-status-label">Tap microphone to speak</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <span style="font-weight: 700; font-size: 0.95rem; display: block; margin-bottom: 8px;">Or pick a question to ask:</span>
+          <div class="chips-group">
+            <button type="button" class="chip-btn" onclick="setQuestionAndAsk('Tell me a gentle joke to brighten my day')">
+              ?? Tell me a joke
+            </button>
+            <button type="button" class="chip-btn" onclick="setQuestionAndAsk('What are easy chair exercises for knee stiffness?')">
+              ?? Easy knee exercises
+            </button>
+            <button type="button" class="chip-btn" onclick="setQuestionAndAsk('How do I make soothing ginger honey tea?')">
+              ? Soothing ginger tea
+            </button>
+            <button type="button" class="chip-btn" onclick="setQuestionAndAsk('How is the weather today?')">
+              ?? Today\'s weather
+            </button>
+          </div>
+        </div>
+
+        <label for="ask-input" class="result-label">Or type your question here:</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="ask-input" placeholder="Type what is on your mind..." style="margin-bottom: 0;">
+          <button type="button" id="ask-submit-btn" class="btn btn-primary" onclick="submitAsk()" style="min-width: 130px;">
+            Ask Saathi
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="ask-loading" class="status-box status-loading">
+          <span>?? Saathi is thinking of a thoughtful answer for you...</span>
+        </div>
+
+        <!-- Error State -->
+        <div id="ask-error" class="status-box status-error">
+          <span id="ask-error-msg">Saathi could not answer. Please try asking again.</span>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; margin-left: auto;" onclick="submitAsk()">
+            ?? Retry
+          </button>
+        </div>
+      </div>
+
+      <!-- Answer Card -->
+      <div id="ask-result" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 1.25rem; font-weight: 800;">Saathi Says:</h3>
+          <button type="button" class="btn btn-secondary" style="min-height: 56px; padding: 6px 14px;" onclick="speakAskResult()">
+            ?? Read Out Loud
+          </button>
+        </div>
+        <p id="ask-answer-text" style="font-size: 1.2rem; font-weight: 500; line-height: 1.6;"></p>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: MY FAMILY -->
+    <section id="screen-family" class="app-screen">
+      <div class="screen-header">
+        <button type="button" class="btn btn-secondary back-home-btn" onclick="showScreen('home')">
+          ? Back to Home
+        </button>
+        <h2 style="font-size: 1.3rem;">??????????? My Family & Helpers</h2>
+      </div>
+
+      <div class="family-grid">
+        <div class="family-card">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 2.2rem;">?????</span>
+            <div>
+              <h3>Rahul (Son)</h3>
+              <p style="color: var(--text-muted);">+91 98765 43210</p>
+            </div>
+          </div>
+          <a href="tel:9876543210" class="btn btn-primary" style="text-align: center;">
+            ?? Call Rahul
+          </a>
+        </div>
+
+        <div class="family-card">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 2.2rem;">?????</span>
+            <div>
+              <h3>Priya (Daughter)</h3>
+              <p style="color: var(--text-muted);">+91 98123 45678</p>
+            </div>
+          </div>
+          <a href="tel:9812345678" class="btn btn-primary" style="text-align: center;">
+            ?? Call Priya
+          </a>
+        </div>
+
+        <div class="family-card">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 2.2rem;">??</span>
+            <div>
+              <h3>Dr. Mehta (Clinic)</h3>
+              <p style="color: var(--text-muted);">022 2456 7890</p>
+            </div>
+          </div>
+          <a href="tel:02224567890" class="btn btn-secondary" style="text-align: center;">
+            ?? Call Doctor
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">?? Help Me Send a Message</h3>
+        <p style="margin-bottom: 14px; color: var(--text-muted);">Tap a button below to generate a sweet, clear message you can copy or send to your family:</p>
+
+        <div class="chips-group">
+          <button type="button" class="chip-btn" onclick="generateFamilyMessage('meds')">
+            ?? "I took my morning medicines"
+          </button>
+          <button type="button" class="chip-btn" onclick="generateFamilyMessage('visit')">
+            ?? "What time are you visiting today?"
+          </button>
+          <button type="button" class="chip-btn" onclick="generateFamilyMessage('rest')">
+            ??? "Resting peacefully, feeling good"
+          </button>
+        </div>
+
+        <div id="family-msg-box" style="display: none; margin-top: 16px;">
+          <label class="result-label">Your message ready to send:</label>
+          <textarea id="family-msg-text" rows="3" readonly></textarea>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" onclick="copyFamilyMessage()">
+              ?? Copy Message
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">
+              ?? Open in WhatsApp
+            </button>
+          </div>
+          <div id="copy-confirm" style="display: none; color: #16A34A; font-weight: 700; margin-top: 10px;">
+            ? Message copied! You can paste it in WhatsApp or SMS.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    Saathi Companion &bull; Thoughtfully designed for senior citizens &bull; High Contrast &bull; Voice Enabled
+  </footer>
+
+  <script>
+    const state = {
+      baseFontSize: 20,
+      highContrast: false,
+      simplerWords: false,
+      currentSpeech: null
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initGreeting();
+      initAccessibilityControls();
+      loadSavedSettings();
+    });
+
+    function initGreeting() {
+      const hour = new Date().getHours();
+      const titleEl = document.getElementById('greeting-text');
+      const subEl = document.getElementById('greeting-sub');
+
+      if (hour >= 5 && hour < 12) {
+        titleEl.textContent = '?? Suprabhat / Good Morning!';
+        subEl.textContent = 'Hope you slept peacefully. Ready to start a lovely new day?';
+      } else if (hour >= 12 && hour < 17) {
+        titleEl.textContent = '?? Good Afternoon!';
+        subEl.textContent = 'Hope you enjoyed a warm, nourishing lunch. Take some quiet rest.';
+      } else if (hour >= 17 && hour < 21) {
+        titleEl.textContent = '?? Shubh Sandhya / Good Evening!';
+        subEl.textContent = 'Time to relax, have a warm beverage, and take a light stroll.';
+      } else {
+        titleEl.textContent = '?? Shubh Ratri / Good Night!';
+        subEl.textContent = 'Rest well, sleep peacefully, and wake up refreshed.';
+      }
+    }
+
+    function initAccessibilityControls() {
+      const slider = document.getElementById('font-slider');
+      const indicator = document.getElementById('font-size-indicator');
+
+      slider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        state.baseFontSize = val;
+        document.documentElement.style.setProperty('--base-font-size', val + 'px');
+        indicator.textContent = val + 'px';
+        try { localStorage.setItem('saathi_font_size', val); } catch (e) {}
+      });
+    }
+
+    function toggleContrast() {
+      state.highContrast = !state.highContrast;
+      const btn = document.getElementById('contrast-toggle');
+      if (state.highContrast) {
+        document.body.classList.add('high-contrast');
+        btn.classList.add('active');
+        btn.textContent = '?? Standard Mode';
+      } else {
+        document.body.classList.remove('high-contrast');
+        btn.classList.remove('active');
+        btn.textContent = '?? High Contrast';
+      }
+      try { localStorage.setItem('saathi_contrast', state.highContrast ? '1' : '0'); } catch (e) {}
+    }
+
+    function toggleSimple() {
+      state.simplerWords = !state.simplerWords;
+      const btn = document.getElementById('simple-toggle');
+      if (state.simplerWords) {
+        btn.classList.add('active');
+        btn.textContent = '?? Simpler Words: ON';
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = '?? Simpler Words: OFF';
+      }
+      try { localStorage.setItem('saathi_simple', state.simplerWords ? '1' : '0'); } catch (e) {}
+    }
+
+    function loadSavedSettings() {
+      try {
+        const savedFont = localStorage.getItem('saathi_font_size');
+        if (savedFont) {
+          state.baseFontSize = savedFont;
+          document.getElementById('font-slider').value = savedFont;
+          document.getElementById('font-size-indicator').textContent = savedFont + 'px';
+          document.documentElement.style.setProperty('--base-font-size', savedFont + 'px');
+        }
+        if (localStorage.getItem('saathi_contrast') === '1') {
+          toggleContrast();
+        }
+        if (localStorage.getItem('saathi_simple') === '1') {
+          toggleSimple();
+        }
+      } catch (e) {}
+    }
+
+    function toggleMed(id, labelId) {
+      const checkbox = document.getElementById(id);
+      const label = document.getElementById(labelId);
+      if (checkbox.checked) {
+        label.classList.add('taken');
+      } else {
+        label.classList.remove('taken');
+      }
+    }
+
+    function showScreen(screenId) {
+      stopAllSpeech();
+      const screens = document.querySelectorAll('.app-screen');
+      screens.forEach(s => s.classList.remove('active'));
+
+      const target = document.getElementById('screen-' + screenId);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      const backBtn = document.getElementById('back-home');
+      if (backBtn) {
+        backBtn.style.display = (screenId === 'home') ? 'none' : 'inline-flex';
+      }
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Voice readout is not supported by your browser.');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      if (!text || !text.trim()) return;
+
+      const utterance = new SpeechSynthesisUtterance(text.trim());
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+
+      const stopBtn = document.getElementById('stop-voice-btn');
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
+
+      utterance.onend = () => {
+        if (stopBtn) stopBtn.style.display = 'none';
+      };
+      utterance.onerror = () => {
+        if (stopBtn) stopBtn.style.display = 'none';
+      };
+
+      state.currentSpeech = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function stopAllSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      const stopBtn = document.getElementById('stop-voice-btn');
+      if (stopBtn) stopBtn.style.display = 'none';
+    }
+
+    function loadSampleSimplify(type) {
+      const input = document.getElementById('simplify-input');
+      if (type === 'electricity') {
+        input.value = 'MAHAVITARAN ELECTRICITY BILL NOTICE: Consumer No 0192837465. Billing Month: Current. Total Net Amount Payable: Rs 1,420. Due Date: 25th of this month. Disconnection notice will be issued if payment is delayed beyond grace period. Pay online via authorized portal or billing counter.';
+      } else {
+        input.value = 'GOVERNMENT PENSION SCHEME STATEMENT: Dear Pensioner, your monthly pension for Rs 18,500 has been credited to your verified bank account ending in 4102 on the 1st of the month. Annual life certificate submission is due in November. Please preserve this acknowledgment for your records.';
+      }
+    }
+
+    async function submitSimplify() {
+      const text = document.getElementById('simplify-input').value.trim();
+      const loading = document.getElementById('simplify-loading');
+      const errorBox = document.getElementById('simplify-error');
+      const resultBox = document.getElementById('simplify-result');
+      const errorMsg = document.getElementById('simplify-error-msg');
+
+      if (!text) {
+        errorMsg.textContent = 'Please paste or type text first.';
+        errorBox.style.display = 'flex';
+        resultBox.style.display = 'none';
+        return;
+      }
+
+      loading.style.display = 'flex';
+      errorBox.style.display = 'none';
+      resultBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/simplify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await res.json();
+        loading.style.display = 'none';
+
+        if (data.error) {
+          errorMsg.textContent = data.error;
+          errorBox.style.display = 'flex';
+          return;
+        }
+
+        document.getElementById('simplify-summary-text').textContent = data.summary || 'Summary ready.';
+
+        const deadlineContainer = document.getElementById('simplify-deadline-container');
+        const deadlineText = document.getElementById('simplify-deadline-text');
+        if (data.deadline) {
+          deadlineText.textContent = '?? Due by: ' + data.deadline;
+          deadlineContainer.style.display = 'block';
+        } else {
+          deadlineContainer.style.display = 'none';
+        }
+
+        const actionsList = document.getElementById('simplify-actions-list');
+        actionsList.innerHTML = '';
+        const actions = Array.isArray(data.actions) ? data.actions : ['Keep safely for your records.'];
+        actions.forEach(act => {
+          const li = document.createElement('li');
+          li.innerHTML = '<span>??</span><span>' + act + '</span>';
+          actionsList.appendChild(li);
+        });
+
+        resultBox.style.display = 'block';
+        speakSimplifyResult();
+      } catch (err) {
+        loading.style.display = 'none';
+        errorMsg.textContent = 'Don\'t worry, connection took too long. Let\'s try again.';
+        errorBox.style.display = 'flex';
+      }
+    }
+
+    function speakSimplifyResult() {
+      const summary = document.getElementById('simplify-summary-text').textContent;
+      const deadline = document.getElementById('simplify-deadline-container').style.display !== 'none'
+        ? document.getElementById('simplify-deadline-text').textContent : '';
+      const actions = Array.from(document.querySelectorAll('#simplify-actions-list li'))
+        .map(li => li.innerText).join('. ');
+
+      speakText('Here is what you need to know. ' + summary + '. ' + deadline + '. Actions to take: ' + actions);
+    }
+
+    function loadSampleScam(type) {
+      const input = document.getElementById('scam-input');
+      if (type === 'kyc') {
+        input.value = 'URGENT: Dear customer, your Bank Account has been BLOCKED due to expired KYC document! Click http://bit.ly/bank-kyc-update immediately or call 9876543210 to prevent permanent account suspension.';
+      } else if (type === 'lottery') {
+        input.value = 'CONGRATULATIONS! You have won Rs 25,00,000 in the National Lucky Draw! To claim your cash prize, WhatsApp your bank passbook photo and deposit Rs 1,500 registration fee to 9811223344.';
+      } else {
+        input.value = '492019 is your secret OTP for logging into NetBanking. Valid for 10 minutes. NEVER share this OTP with anyone, including bank officials or callers.';
+      }
+    }
+
+    async function submitScam() {
+      const text = document.getElementById('scam-input').value.trim();
+      const loading = document.getElementById('scam-loading');
+      const errorBox = document.getElementById('scam-error');
+      const resultBox = document.getElementById('scam-result');
+      const errorMsg = document.getElementById('scam-error-msg');
+
+      if (!text) {
+        errorMsg.textContent = 'Please enter or paste a message to verify.';
+        errorBox.style.display = 'flex';
+        resultBox.style.display = 'none';
+        return;
+      }
+
+      loading.style.display = 'flex';
+      errorBox.style.display = 'none';
+      resultBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/scam', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await res.json();
+        loading.style.display = 'none';
+
+        if (data.error) {
+          errorMsg.textContent = data.error;
+          errorBox.style.display = 'flex';
+          return;
+        }
+
+        const badge = document.getElementById('scam-verdict-badge');
+        badge.className = 'verdict-badge';
+        if (data.verdict === 'Danger') {
+          badge.classList.add('verdict-danger');
+          badge.innerHTML = '?? DANGER - SCAM DETECTED';
+        } else if (data.verdict === 'Safe') {
+          badge.classList.add('verdict-safe');
+          badge.innerHTML = '? SAFE MESSAGE';
+        } else {
+          badge.classList.add('verdict-suspicious');
+          badge.innerHTML = '?? SUSPICIOUS - BE CAREFUL';
+        }
+
+        const reasonsList = document.getElementById('scam-reasons-list');
+        reasonsList.innerHTML = '';
+        const reasons = Array.isArray(data.reasons) ? data.reasons : ['Message contains unusual requests.'];
+        reasons.forEach(r => {
+          const li = document.createElement('li');
+          li.innerHTML = '<span>?</span><span>' + r + '</span>';
+          reasonsList.appendChild(li);
+        });
+
+        document.getElementById('scam-advice-text').textContent = data.advice || 'Show this to a trusted family member first.';
+
+        resultBox.style.display = 'block';
+        speakScamResult();
+      } catch (err) {
+        loading.style.display = 'none';
+        errorMsg.textContent = 'Connection took too long. Let\'s try again.';
+        errorBox.style.display = 'flex';
+      }
+    }
+
+    function speakScamResult() {
+      const verdict = document.getElementById('scam-verdict-badge').innerText;
+      const advice = document.getElementById('scam-advice-text').innerText;
+      const reasons = Array.from(document.querySelectorAll('#scam-reasons-list li'))
+        .map(li => li.innerText).join('. ');
+
+      speakText('Verdict: ' + verdict + '. Here is why: ' + reasons + '. What you should do: ' + advice);
+    }
+
+    let recognition = null;
+    let isListening = false;
+
+    function toggleVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Speech recognition is not supported in this browser. You can type your question in the box below!');
+        return;
+      }
+
+      const micBtn = document.getElementById('mic-btn');
+      const micStatus = document.getElementById('mic-status');
+
+      if (isListening) {
+        if (recognition) recognition.stop();
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('listening');
+        micStatus.textContent = '?? Listening... Speak clearly now';
+      };
+
+      recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript;
+        document.getElementById('ask-input').value = spokenText;
+        submitAsk();
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech error:', event.error);
+        micStatus.textContent = 'Could not hear clearly. Tap mic to try again!';
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('listening');
+        micStatus.textContent = 'Tap microphone to speak';
+      };
+
+      try {
+        recognition.start();
+      } catch (e) {
+        console.error('Recognition start error:', e);
+      }
+    }
+
+    function setQuestionAndAsk(q) {
+      document.getElementById('ask-input').value = q;
+      submitAsk();
+    }
+
+    async function submitAsk() {
+      const question = document.getElementById('ask-input').value.trim();
+      const loading = document.getElementById('ask-loading');
+      const errorBox = document.getElementById('ask-error');
+      const resultBox = document.getElementById('ask-result');
+      const errorMsg = document.getElementById('ask-error-msg');
+
+      if (!question) {
+        errorMsg.textContent = 'Please speak or type a question.';
+        errorBox.style.display = 'flex';
+        resultBox.style.display = 'none';
+        return;
+      }
+
+      loading.style.display = 'flex';
+      errorBox.style.display = 'none';
+      resultBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question,
+            simple: state.simplerWords
+          })
+        });
+
+        const data = await res.json();
+        loading.style.display = 'none';
+
+        if (data.error) {
+          errorMsg.textContent = data.error;
+          errorBox.style.display = 'flex';
+          return;
+        }
+
+        const answerText = data.answer || 'Namaste! I am here with you.';
+        document.getElementById('ask-answer-text').textContent = answerText;
+        resultBox.style.display = 'block';
+        speakAskResult();
+      } catch (err) {
+        loading.style.display = 'none';
+        errorMsg.textContent = 'Something took too long. Let\'s try asking again.';
+        errorBox.style.display = 'flex';
+      }
+    }
+
+    function speakAskResult() {
+      const ans = document.getElementById('ask-answer-text').textContent;
+      speakText(ans);
+    }
+
+    function generateFamilyMessage(type) {
+      const box = document.getElementById('family-msg-box');
+      const text = document.getElementById('family-msg-text');
+      const confirm = document.getElementById('copy-confirm');
+      confirm.style.display = 'none';
+
+      if (type === 'meds') {
+        text.value = 'Namaste beta, just letting you know I have taken my morning medicines on time and drank warm water. Hope you have a wonderful day at work!';
+      } else if (type === 'visit') {
+        text.value = 'Hello beta! When you get free today, let me know what time you are coming over. Looking forward to having tea together.';
+      } else {
+        text.value = 'Namaste beta, I am resting peacefully at home and feeling healthy today. No worries at all. Love and blessings!';
+      }
+      box.style.display = 'block';
+    }
+
+    function copyFamilyMessage() {
+      const text = document.getElementById('family-msg-text');
+      text.select();
+      navigator.clipboard.writeText(text.value).then(() => {
+        const confirm = document.getElementById('copy-confirm');
+        confirm.style.display = 'block';
+        setTimeout(() => { confirm.style.display = 'none'; }, 3500);
+      });
+    }
+
+    function shareWhatsApp() {
+      const text = document.getElementById('family-msg-text').value;
+      const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>

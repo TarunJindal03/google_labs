@@ -1,0 +1,12 @@
+{
+  "name": "saathi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node scripts/verify.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
